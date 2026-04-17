@@ -144,7 +144,16 @@
         }
 
         let currentPassword = "";
-        let leaderboardData = [];
+        let leaderboardData = [
+            { alias: "ana_techlead", score: 4, time: "12s" },
+            { alias: "carlos_ciso", score: 4, time: "19s" },
+            { alias: "maria_finanzas", score: 4, time: "31s" },
+            { alias: "juan_devops", score: 4, time: "45s" },
+            { alias: "laura_marketing", score: 4, time: "1m" },
+            { alias: "pedro_ventas", score: 4, time: "2m" },
+            { alias: "sofia_legal", score: 4, time: "3m" },
+            { alias: "diego_it", score: 4, time: "5m" }
+        ];
 
         function toggleVisibility() {
             const input = document.getElementById("password");
@@ -307,21 +316,6 @@
             return Math.min(4, score);
         }
 
-        function loadLeaderboard() {
-            const saved = localStorage.getItem("xeliumLeaderboard");
-            if (saved) {
-                leaderboardData = JSON.parse(saved);
-            } else {
-                leaderboardData = [
-                    { alias: "ana_techlead", score: 4, time: "12s" },
-                    { alias: "carlos_ciso", score: 4, time: "19s" },
-                    { alias: "maria_finanzas", score: 4, time: "31s" }
-                ];
-                localStorage.setItem("xeliumLeaderboard", JSON.stringify(leaderboardData));
-            }
-            renderLeaderboard();
-        }
-
         function renderLeaderboard() {
             const container = document.getElementById("leaderboard");
             let html = "";
@@ -370,9 +364,8 @@
                 time: Math.floor(Math.random() * 40) + "s"
             });
             
-            if (leaderboardData.length > 20) leaderboardData.pop();
+            if (leaderboardData.length > 30) leaderboardData.pop();
             
-            localStorage.setItem("xeliumLeaderboard", JSON.stringify(leaderboardData));
             renderLeaderboard();
             
             alert("Puntuación publicada correctamente en el ranking de usuarios reales");
@@ -380,7 +373,7 @@
 
         window.onload = function() {
             initTailwind();
-            loadLeaderboard();
+            renderLeaderboard();
             
             const passwordInput = document.getElementById("password");
             passwordInput.addEventListener("input", updateStrength);
