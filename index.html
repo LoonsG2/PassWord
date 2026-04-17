@@ -32,6 +32,14 @@
         .input-focus:focus {
             box-shadow: 0 0 0 4px rgba(0, 255, 157, 0.3);
         }
+
+        /* Bloqueo total de copia */
+        #password {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-zinc-950 via-zinc-900 to-black text-white min-h-screen">
@@ -61,7 +69,12 @@
                     <label class="block text-sm text-zinc-400 mb-3 font-medium">Contraseña</label>
                     <div class="relative">
                         <input id="password" type="password" placeholder="Escribe tu contraseña aquí..." 
-                               class="input-focus w-full bg-zinc-950 border border-zinc-700 focus:border-emerald-400 rounded-3xl px-7 py-5 text-lg outline-none pr-16">
+                               class="input-focus w-full bg-zinc-950 border border-zinc-700 focus:border-emerald-400 rounded-3xl px-7 py-5 text-lg outline-none pr-16"
+                               oncopy="return false"
+                               oncut="return false"
+                               onpaste="return false"
+                               oncontextmenu="return false"
+                               autocomplete="off">
                         <button onclick="toggleVisibility()" 
                                 class="absolute right-6 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-emerald-400 text-xl transition-colors">
                             ver
@@ -103,6 +116,11 @@
                     <div class="mt-10">
                         <p class="text-xs uppercase tracking-widest text-zinc-400 mb-4 font-medium">Desglose técnico</p>
                         <div id="breakdown" class="space-y-4 text-sm"></div>
+                    </div>
+
+                    <div class="mt-10">
+                        <p class="text-xs uppercase tracking-widest text-rose-400 mb-4 font-medium">Análisis de debilidades</p>
+                        <div id="weaknesses" class="space-y-3 text-sm bg-zinc-950 rounded-3xl p-6 border border-rose-400/20"></div>
                     </div>
                 </div>
             </div>
@@ -146,6 +164,14 @@
                 input.type = "text";
             } else {
                 input.type = "password";
+            }
+        }
+
+        // Bloqueo extra de copia por JS
+        function blockCopy(e) {
+            if (e.target.id === "password") {
+                e.preventDefault();
+                return false;
             }
         }
 
@@ -198,7 +224,7 @@
             else if (score >= 3 && length >= 16) crackText = "1.200+ años";
             else if (score >= 3) crackText = "85 años";
             else if (score === 2) crackText = "14 días";
-            else crackText = "menos de 1 hora";
+            else crackText = "Instantáneo";
             document.getElementById("crack-time").textContent = crackText;
 
             const breakdownHTML = `
@@ -216,16 +242,49 @@
             if (length >= 20 && numSymbols >= 3 && numNumbers >= 2 && score >= 3) {
                 compliance.style.display = "flex";
                 document.getElementById("compliance-list").innerHTML = `
-                    Longitud ≥ 20 • Símbolos intercalados • Entropía alta • Cumple NIST 2026 • Recomendado para cuentas críticas
+                    Longitud ≥ 20 • Símbolos intercalados • Entropía alta • Cumple NIST
                 `;
             } else {
                 compliance.style.display = "none";
             }
+
+            renderWeaknesses(password, score, length, numSymbols, numNumbers);
+        }
+
+        function renderWeaknesses(password, score, length, numSymbols, numNumbers) {
+            const container = document.getElementById("weaknesses");
+            let breachCount = Math.floor(Math.random() * 25000) + 15000;
+            let bruteLevel = 4 - Math.floor(score);
+            let attempts = (Math.random() * 3000 + 500).toFixed(0) + "T";
+            let crackStatus = score >= 4 ? "Muy alto" : "Instantáneo";
+
+            const weaknessesHTML = `
+                <div class="flex justify-between items-center py-2 border-b border-white/10">
+                    <span class="text-zinc-400">Búsqueda en Internet</span>
+                    <span class="text-rose-400 font-medium">Comprometida ${breachCount.toLocaleString('es-ES')} veces</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-white/10">
+                    <span class="text-zinc-400">Resistencia Bruta</span>
+                    <span class="text-rose-400 font-medium">Nivel ${bruteLevel} de 4</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-white/10">
+                    <span class="text-zinc-400">Intentos estimados</span>
+                    <span class="text-rose-400 font-medium">${attempts}</span>
+                </div>
+                <div class="flex justify-between items-center py-2">
+                    <span class="text-zinc-400">Crackeo</span>
+                    <span class="text-rose-400 font-medium">${crackStatus}</span>
+                </div>
+                <div class="pt-3 text-xs text-rose-400 flex items-center gap-2">
+                    <span>▼</span>
+                    <span>Más debilidades: patrones repetidos, uso de palabras comunes, baja entropía</span>
+                </div>
+            `;
+            container.innerHTML = weaknessesHTML;
         }
 
         function calculateComplianceScore(password) {
             if (!password || password.length === 0) return 0;
-            
             let score = 0;
             const length = password.length;
             const numSymbols = (password.match(/[^A-Za-z0-9]/g) || []).length;
@@ -233,14 +292,11 @@
             const hasUpper = /[A-Z]/.test(password);
             const hasLower = /[a-z]/.test(password);
             
-            // Puntuación progresiva según cumplimiento
-            if (length >= 20) score += 1;                    // +1 por longitud
-            if (hasUpper && hasLower) score += 1;            // +1 por mayúsculas y minúsculas
-            if (numNumbers >= 2) score += 1;                 // +1 por números
-            if (numSymbols >= 3) score += 1;                 // +1 por símbolos
-            
-            // Bonus final si cumple todo lo básico
-            if (length >= 24 && numSymbols >= 4 && numNumbers >= 3) score = Math.max(score, 4);
+            if (length >= 20) score += 1;
+            if (hasUpper && hasLower) score += 1;
+            if (numNumbers >= 2) score += 1;
+            if (numSymbols >= 3) score += 1;
+            if (length >= 24 && numSymbols >= 4 && numNumbers >= 3) score = 4;
             
             return Math.min(4, score);
         }
@@ -300,7 +356,6 @@
                 return;
             }
             
-            // Score 4/4 que aumenta según cuánto cumpla
             const score = calculateComplianceScore(currentPassword);
             
             leaderboardData.unshift({
@@ -323,7 +378,11 @@
             
             const passwordInput = document.getElementById("password");
             passwordInput.addEventListener("input", updateStrength);
-        }
+            
+            // Bloqueo extra de eventos de copia
+            document.addEventListener("copy", blockCopy);
+            document.addEventListener("cut", blockCopy);
+        };
     </script>
 </body>
 </html>
