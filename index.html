@@ -121,6 +121,7 @@
                 </div>
                 
                 <div id="leaderboard" class="flex-1 space-y-3 overflow-auto">
+                    <!-- Se llena dinámicamente -->
                 </div>
 
                 <div class="mt-8 pt-8 border-t border-white/10">
@@ -144,16 +145,7 @@
         }
 
         let currentPassword = "";
-        let leaderboardData = [
-            { alias: "ana_techlead", score: 4, time: "12s" },
-            { alias: "carlos_ciso", score: 4, time: "19s" },
-            { alias: "maria_finanzas", score: 4, time: "31s" },
-            { alias: "juan_devops", score: 4, time: "45s" },
-            { alias: "laura_marketing", score: 4, time: "1m" },
-            { alias: "pedro_ventas", score: 4, time: "2m" },
-            { alias: "sofia_legal", score: 4, time: "3m" },
-            { alias: "diego_it", score: 4, time: "5m" }
-        ];
+        let leaderboardData = [];   // ← Sin registros iniciales
 
         function toggleVisibility() {
             const input = document.getElementById("password");
@@ -318,12 +310,24 @@
 
         function renderLeaderboard() {
             const container = document.getElementById("leaderboard");
+            
+            if (leaderboardData.length === 0) {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-64 text-center">
+                        <div class="text-4xl mb-4">🏆</div>
+                        <p class="text-zinc-400 text-lg">Aún no hay puntuaciones</p>
+                        <p class="text-zinc-500 text-sm mt-2">Sé el primero en publicar tu contraseña</p>
+                    </div>
+                `;
+                return;
+            }
+
             let html = "";
             leaderboardData.forEach((entry, i) => {
                 html += `
-                <div class="flex items-center justify-between bg-zinc-950 rounded-3xl px-6 py-4">
+                <div class="flex items-center justify-between bg-zinc-950 rounded-3xl px-6 py-4 hover:bg-zinc-900 transition-colors">
                     <div class="flex items-center gap-4">
-                        <span class="text-2xl font-semibold text-zinc-400">${i+1}</span>
+                        <span class="text-2xl font-semibold text-emerald-400 w-6">${i+1}</span>
                         <div>
                             <div class="font-medium">${entry.alias}</div>
                             <div class="text-xs text-emerald-400">Score ${entry.score}/4</div>
